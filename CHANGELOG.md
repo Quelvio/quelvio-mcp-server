@@ -2,13 +2,66 @@
 
 All notable changes to the Quelvio MCP server. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.3] — 2026-05-12
+
+### Changed
+
+- Repository URL refs now point at the public mirror
+  ([Quelvio/quelvio-mcp-server](https://github.com/Quelvio/quelvio-mcp-server))
+  across `package.json`, `server.json`, and `.cursor-plugin/plugin.json`
+  for Cursor Marketplace + Claude Connectors directory submissions.
+- `SERVER_INFO.version` synced to 1.0.3 (was lagging at 1.0.0 in the
+  MCP `initialize` handshake response).
+
+### Polish
+
+- Scrubbed internal-only references from comments (private design-doc
+  links, Python module paths, internal codenames).
+- Regenerated `package-lock.json` without monorepo workspace paths so
+  fresh clones can `npm install` cleanly.
+- Dockerfile labels corrected: `image.licenses="MIT"` (was
+  `"Proprietary"`), `image.source` / `image.documentation` point at the
+  public mirror.
+
+## [1.0.2] — 2026-05-12
+
+### Added
+
+- **Dynamic Client Registration (RFC 7591)** — `POST /register`
+  endpoint required by Anthropic's custom-connector orchestrator. Each
+  Claude Desktop installation now registers as a unique OAuth client
+  on first use, unblocking the previously-stalled "Open Claude" step.
+- **`title` + `idempotentHint` tool annotations** on all three tools
+  (`query_knowledge`, `list_domains`, `get_source_detail`) per the
+  Claude Connectors directory submission criteria.
+- **`/oauth/bridge-meta` `client_name` surface** — DCR-registered
+  client names propagate to the frontend bridge consent page (Claude
+  Desktop / Cursor / etc.).
+
+### Fixed
+
+- `server.json` schema alignment with the Official MCP Registry
+  (repository as object, plural `remotes[]` array, removed deprecated
+  fields).
+- OAuth bridge UX polish: Quelvio logo on the consent page, dynamic
+  client name in copy, branded loading state.
+
+## [1.0.1] — 2026-05-12
+
+### Added
+
+- `.cursor-plugin/` directory for Cursor Marketplace listing
+  (plugin manifest + README).
+- MIT `LICENSE` file (the source was already MIT-licensed in
+  `package.json`).
+
 ## [1.0.0] — 2026-05-09 (v0.8.8)
 
 The MCP Phase 1 release — the server is now usable end-to-end at tenant-scope auth. Three tools live, OAuth 2.1 + PKCE shipped, distribution scaffolding in place. Per-employee permission filtering remains a v0.9.x deliverable (SSO + Identity workstream).
 
 ### Added
 
-- **`query_knowledge` tool** — primary search tool with structured + synthesis modes (`quick | standard | deep | synthesis_lite | synthesis_pro`). Replaces `quelvio_search` and absorbs `quelvio_synthesize`. First-sentence-uniqueness description aligns with the Quelvio distribution strategy doc §13.3 for progressive-discovery clients (Claude Code Tool Search).
+- **`query_knowledge` tool** — primary search tool with structured + synthesis modes (`quick | standard | deep | synthesis_lite | synthesis_pro`). Replaces `quelvio_search` and absorbs `quelvio_synthesize`. First-sentence-uniqueness description targets progressive-discovery clients (Claude Code Tool Search).
 - **`list_domains` tool** — zero-cost discovery of taxonomy domains with coverage levels, document/expert counts, and the top contributor per domain. Replaces the broken `quelvio_topics` tool which called a non-existent backend endpoint.
 - **`get_source_detail` tool** — chunk-level provenance for a previous query (`query_id` from a prior `query_knowledge` response). Returns lifecycle state, embedding timestamp, contributor metadata. Zero kT consumption.
 - **Safety annotations on every tool** — `readOnlyHint=true`, `destructiveHint=false`, `openWorldHint` per tool. Required by the Claude Connectors directory.
@@ -20,9 +73,9 @@ The MCP Phase 1 release — the server is now usable end-to-end at tenant-scope 
 
 ### Removed
 
-- **Marketplace key path** — `qlv_*` (non-`qlv_ent_`) keys are gone. The marketplace product was deprecated in v0.7. The OAuth flow + W14 direct-accept path remain; only the marketplace branch in the API client is removed. `POST /v1/query` was never live post-v0.7.
-- **`quelvio_search`, `quelvio_synthesize`, `quelvio_topics` tools** — replaced per the rename plan in v0.8.8 design doc §2. The smoke test invocations (`scripts/oauth-smoke-test.ts`) were updated to call `list_domains`.
-- **Unused `@modelcontextprotocol/sdk` dependency** — closed the hono CVE chain (3 medium-severity CVEs) and removed 20+ unused transitive dependencies. Decision documented in `docs/v088-mcp-sdk-vs-handrolled-decision.md` (Phase 0b research).
+- **Marketplace key path** — `qlv_*` (non-`qlv_ent_`) keys are gone. The marketplace product was deprecated in v0.7. The OAuth flow + paste-key direct-accept path remain; only the marketplace branch in the API client is removed. `POST /v1/query` was never live post-v0.7.
+- **`quelvio_search`, `quelvio_synthesize`, `quelvio_topics` tools** — replaced as part of the v0.8.8 tool rename. The smoke test invocations (`scripts/oauth-smoke-test.ts`) were updated to call `list_domains`.
+- **Unused `@modelcontextprotocol/sdk` dependency** — closed the hono CVE chain (3 medium-severity CVEs) and removed 20+ unused transitive dependencies after deciding to keep the hand-rolled MCP implementation.
 
 ### Changed
 
@@ -44,7 +97,7 @@ Per-employee permission filtering ships in v0.9 alongside the SSO + Identity wor
 ### Known follow-ups for v0.8.x
 
 - Wire a TypeScript test framework (vitest) and add unit tests for `tools/token_cap.ts` (truncation order at the cap boundary) and `tools/sse_proxy.applyEvent` (event vocabulary + error frame handling). Helpers are exposed via `__testing` exports for this. Currently exercised only by the end-to-end smoke test (`scripts/oauth-smoke-test.ts`) and tsc / wrangler bundle sanity.
-- Vendor a types-only file from the SDK (`ToolAnnotations`, `CallToolResult`, etc.) so future spec drift is caught at compile time. Tracked as PR-B in `docs/v088-mcp-sdk-vs-handrolled-decision.md` §9.
+- Vendor a types-only file from the SDK (`ToolAnnotations`, `CallToolResult`, etc.) so future spec drift is caught at compile time.
 
 ---
 

@@ -16,9 +16,9 @@ FROM node:22-alpine
 LABEL org.opencontainers.image.title="Quelvio MCP Server"
 LABEL org.opencontainers.image.description="MCP server for Quelvio enterprise knowledge — stdio bridge"
 LABEL org.opencontainers.image.url="https://mcp.quelvio.com"
-LABEL org.opencontainers.image.documentation="https://github.com/Quelvio/quelvio-platform/tree/main/mcp-server"
-LABEL org.opencontainers.image.source="https://github.com/Quelvio/quelvio-platform"
-LABEL org.opencontainers.image.licenses="Proprietary"
+LABEL org.opencontainers.image.documentation="https://github.com/Quelvio/quelvio-mcp-server"
+LABEL org.opencontainers.image.source="https://github.com/Quelvio/quelvio-mcp-server"
+LABEL org.opencontainers.image.licenses="MIT"
 
 WORKDIR /app
 

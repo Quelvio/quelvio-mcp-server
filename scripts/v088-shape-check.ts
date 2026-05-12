@@ -20,7 +20,7 @@
  *
  * Runtime tests (KV round-trip, /oauth/callback flow, header
  * propagation against a live backend) are tracked as a follow-up
- * Phase 2 item — see docs/v088-sso-employee-identity-design.md §5.3.
+ * item.
  */
 
 import type { AuthContext } from "../src/auth/middleware.js";
@@ -42,9 +42,9 @@ const _ctxOauthClerk: AuthContext = {
 };
 
 // ── AuthContext shape — admin-fallback smoke path (memberId null) ───
-// v0.8.8 foundation deleted the legacy ``direct_enterprise`` paste-key
-// path along with the W14 direct-accept code path. Admin fallback is
-// the only remaining branch where ``memberId`` is null.
+// The legacy ``direct_enterprise`` paste-key path was removed along
+// with the legacy paste-key direct-accept code path. Admin fallback
+// is the only remaining branch where ``memberId`` is null.
 const _ctxAdminFallback: AuthContext = {
   apiKey: "qlv_ent_ADMIN_SMOKE",
   keyType: "enterprise",
@@ -110,7 +110,7 @@ const _legacy = new QuelvioClient(
 
 // Suppress unused-warning noise — these exist to assert shape only.
 void _ctxOauthClerk;
-void _ctxDirect;
+void _ctxAdminFallback;
 void _code;
 void _token;
 void _refresh;

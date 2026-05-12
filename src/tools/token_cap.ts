@@ -14,7 +14,7 @@
  * English text it slightly UNDER-counts vs. the real tokenizer, which
  * means we're slightly more permissive than necessary. Acceptable.
  *
- * Truncation order (per design doc §2.4):
+ * Truncation order:
  *   1. Drop excerpts past 200 chars first.
  *   2. Drop the lowest-ranked sources.
  *   3. Truncate the synthesis body if still over.

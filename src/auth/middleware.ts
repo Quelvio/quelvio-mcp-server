@@ -17,10 +17,10 @@
  *   2. ``Authorization: Bearer {oauth_token}`` — look up the opaque token
  *      in KV (``token:{uuid}``), decrypt the stored API key, return it.
  *
- * v0.8.8 foundation deleted the W14 ``direct_enterprise`` paste-key path
- * (``Authorization: Bearer qlv_ent_*`` posted directly without OAuth).
- * Customers using the legacy paste-key flow must complete the OAuth/
- * Clerk round-trip on first use; see docs/v088-foundation-design.md §2.3.
+ * The legacy paste-key direct-accept path (``Authorization: Bearer
+ * qlv_ent_*`` posted directly without OAuth) was removed. Customers
+ * using the legacy paste-key flow must complete the OAuth/Clerk
+ * round-trip on first use.
  *
  * Anything else → 401 with WWW-Authenticate.
  */
@@ -34,12 +34,11 @@ export interface AuthContext {
   /** Tenant ID for enterprise keys, ``null`` for marketplace and admin fallback. */
   tenantId: string | null;
   /**
-   * v0.8.8 SSO foundation: tenant_member.id when the OAuth flow went
-   * through the Clerk-redirect bridge (``/oauth/callback`` →
-   * ``POST /v1/auth/sso-bridge``). NULL on admin fallback. When
-   * present, the QuelvioClient sends ``X-Employee-Id`` so the
-   * backend's ``get_per_employee_auth`` resolves the actual member's
-   * ``permission_emails`` scope at retrieval time.
+   * Tenant-member ID when the OAuth flow went through the Clerk-
+   * redirect bridge (``/oauth/callback`` → ``POST /v1/auth/sso-bridge``).
+   * NULL on admin fallback. When present, the QuelvioClient sends
+   * ``X-Employee-Id`` so the backend can resolve the actual member's
+   * source-permission scope at retrieval time.
    */
   memberId: string | null;
   /** Email of the resolved member; NULL on admin fallback. Telemetry only. */

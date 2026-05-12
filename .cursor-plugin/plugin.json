@@ -1,7 +1,7 @@
 {
   "name": "Quelvio",
   "description": "Your company's brain for AI agents. Cited, permission-aware knowledge across every system.",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "publisher": "Quelvio",
   "repository": "https://github.com/Quelvio/quelvio-mcp-server",
   "license": "MIT",

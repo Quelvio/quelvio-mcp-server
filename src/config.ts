@@ -41,10 +41,9 @@ export interface Env {
   // /oauth/authorize unconditionally 302s the browser to
   // CLERK_SIGN_IN_URL. After sign-in /oauth/callback exchanges the
   // Clerk session JWT for a per-employee ephemeral API key via
-  // /v1/auth/sso-bridge. v0.8.8 foundation deleted the
-  // ENABLE_CLERK_REDIRECT flag and the legacy paste-an-API-key form
-  // (the W14 direct-accept path); see docs/v088-foundation-design.md
-  // §2.3.
+  // /v1/auth/sso-bridge. The ENABLE_CLERK_REDIRECT flag and the
+  // legacy paste-an-API-key form have been removed; Clerk redirect
+  // is unconditional.
   CLERK_SIGN_IN_URL: string;
 
   // ── Storage ─────────────────────────────────────────────────────────
@@ -98,7 +97,7 @@ export function getApiUrl(env: Env): string {
 /** MCP server metadata returned during initialize handshake. */
 export const SERVER_INFO = {
   name: "quelvio-mcp",
-  version: "1.0.0",
+  version: "1.0.3",
 } as const;
 
 /** MCP protocol version (streamable HTTP, spec 2025-03-26). */

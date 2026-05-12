@@ -329,8 +329,8 @@ export default {
     }
 
     // ── OAuth authorize: GET 302s to Clerk hosted sign-in ───────────
-    // v0.8.8 foundation deleted POST /oauth/authorize (the paste-key
-    // form submission) along with the W14 direct-accept code path.
+    // POST /oauth/authorize (the paste-key form submission) and the
+    // legacy paste-key direct-accept code path have been removed.
     if (request.method === "GET" && url.pathname === "/oauth/authorize") {
       return await handleAuthorizeGet(request, env);
     }
@@ -356,11 +356,10 @@ export default {
     }
 
     // ── Dynamic Client Registration (RFC 7591) ──────────────────────
-    // v0.8.8 — Anthropic's custom-connector orchestrator requires DCR
-    // to register each Claude Desktop installation as a unique OAuth
+    // Anthropic's custom-connector orchestrator requires DCR to
+    // register each Claude Desktop installation as a unique OAuth
     // client on first use. Without this endpoint the orchestrator
-    // stalls at "Open Claude" before invoking /oauth/authorize. See
-    // docs/tech-debt/v088-claude-connector-7min-auth-hang.md Scenario B.
+    // stalls at "Open Claude" before invoking /oauth/authorize.
     if (request.method === "POST" && url.pathname === "/register") {
       const res = await handleRegister(request, env);
       const headers = new Headers(res.headers);

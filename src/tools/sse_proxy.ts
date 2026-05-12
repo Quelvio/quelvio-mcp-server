@@ -6,7 +6,7 @@
  * fetch to the backend's `POST /v1/enterprise/query/stream` and re-
  * encodes its bespoke event vocabulary as MCP-shaped output deltas.
  *
- * Backend SSE event mapping (per design doc §4.1):
+ * Backend SSE event mapping:
  *
  *   status              → discarded (internal stage marker)
  *   sources             → buffered for the final structured-metadata block

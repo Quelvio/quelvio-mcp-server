@@ -10,10 +10,10 @@
  *   POST /oauth/token           — exchange code OR refresh for access token
  *   POST /oauth/revoke          — revoke an access or refresh token
  *
- * v0.8.8 foundation deleted the legacy paste-an-API-key flow (POST
- * /oauth/authorize, the CSRF-protected HTML form, GET /v1/auth/verify
- * helper) along with the W14 direct-accept code path. Every MCP user
- * now goes through the Clerk-redirect bridge:
+ * The legacy paste-an-API-key flow (POST /oauth/authorize with a
+ * CSRF-protected HTML form) and the legacy paste-key direct-accept
+ * path were removed. Every MCP user now goes through the Clerk-
+ * redirect bridge:
  *
  *   GET /oauth/authorize  →  Clerk hosted sign-in
  *                         →  GET /oauth/callback (with __session JWT)
@@ -21,8 +21,7 @@
  *                         →  302 back to client redirect_uri with code
  *
  * Storage and PKCE live in storage.ts and pkce.ts; this file is just
- * routing, validation, and HTTP plumbing. See
- * docs/v088-foundation-design.md §2.3 for the deletion rationale.
+ * routing, validation, and HTTP plumbing.
  */
 
 import { type Env, getApiUrl, isRedirectUriAllowed } from "../config.js";
@@ -84,12 +83,11 @@ export function handleAuthorizationServerMetadata(env: Env): Response {
     authorization_endpoint: `${issuer}/oauth/authorize`,
     token_endpoint: `${issuer}/oauth/token`,
     revocation_endpoint: `${issuer}/oauth/revoke`,
-    // v0.8.8 DCR — Dynamic Client Registration per RFC 7591. Required
-    // by Anthropic's custom-connector orchestrator: each Claude Desktop
-    // installation registers as a unique OAuth client on first use.
-    // Without this endpoint, the orchestrator stalls at "Open Claude"
-    // and never reaches /oauth/authorize. See
-    // docs/tech-debt/v088-claude-connector-7min-auth-hang.md Scenario B.
+    // Dynamic Client Registration per RFC 7591. Required by Anthropic's
+    // custom-connector orchestrator: each Claude Desktop installation
+    // registers as a unique OAuth client on first use. Without this
+    // endpoint, the orchestrator stalls at "Open Claude" and never
+    // reaches /oauth/authorize.
     registration_endpoint: `${issuer}/register`,
     response_types_supported: ["code"],
     response_modes_supported: ["query"],
@@ -270,11 +268,10 @@ async function storeRegisteredClient(
 /**
  * RFC 7591 Dynamic Client Registration endpoint.
  *
- * v0.8.8 — required by Anthropic's custom-connector orchestrator. Each
- * Claude Desktop installation calls this on first use to register itself
- * as a unique OAuth client. Without DCR, the orchestrator can't generate
- * a ``client_id`` and stalls at the "Open Claude" placeholder. See
- * ``docs/tech-debt/v088-claude-connector-7min-auth-hang.md`` Scenario B.
+ * Required by Anthropic's custom-connector orchestrator: each Claude
+ * Desktop installation calls this on first use to register itself as
+ * a unique OAuth client. Without DCR, the orchestrator can't generate
+ * a ``client_id`` and stalls at the "Open Claude" placeholder.
  *
  * Request body (per RFC 7591 §3.1):
  *   {
@@ -399,11 +396,12 @@ export async function handleRegister(
 
 /** Validate OAuth params and 302 the browser to Clerk hosted sign-in.
  *
- * v0.8.8 foundation: this handler is unconditional. The pre-foundation
- * paste-an-API-key form path (gated on ENABLE_CLERK_REDIRECT) is gone
- * along with the W14 direct-accept code path. Customers that previously
- * pasted ``qlv_ent_*`` keys directly into Claude Desktop / Cursor /
- * Notion's MCP UI must complete the OAuth/Clerk round-trip on first use.
+ * This handler is unconditional. The pre-foundation paste-an-API-key
+ * form path (previously gated on ENABLE_CLERK_REDIRECT) is gone along
+ * with the legacy paste-key direct-accept path. Customers that
+ * previously pasted ``qlv_ent_*`` keys directly into Claude Desktop /
+ * Cursor / Notion's MCP UI must complete the OAuth/Clerk round-trip
+ * on first use.
  */
 export async function handleAuthorizeGet(
   request: Request,

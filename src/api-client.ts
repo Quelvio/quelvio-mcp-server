@@ -6,29 +6,22 @@
  * token, plus the employee binding captured during the OAuth flow.
  *
  * Header convention:
- *   X-API-Key          — auth (matches enterprise/presentation/dependencies.py)
- *   X-Quelvio-Source   — origin label "mcp" → flows into the audit log
- *                        (v0.8.8 MCP Phase 1 — see backend
- *                        AuditLogger.log_query `source` kwarg)
+ *   X-API-Key          — matches the backend's auth dependency.
+ *   X-Quelvio-Source   — origin label "mcp" — flows into the audit log so
+ *                        MCP-originating queries are distinguishable from
+ *                        dashboard / Slack / etc.
  *   X-Employee-Id      — per-employee scoping when the OAuth flow captured
- *                        a member binding (v0.8.8 SSO foundation, PR #208).
- *                        Backend's get_per_employee_auth uses this to scope
- *                        permission_emails filtering to the actual querying
- *                        employee instead of falling through to tenant-level
- *                        access. Omitted when memberId is null (legacy
- *                        paste-key paths, admin fallback, direct enterprise-
- *                        key flow without OAuth).
+ *                        a member binding. The backend uses this to scope
+ *                        permission filtering to the actual querying
+ *                        employee instead of falling through to tenant-
+ *                        level access. Omitted when memberId is null
+ *                        (admin fallback path only).
  *
- * v0.8.8 (MCP Phase 1):
- *   - Marketplace branch removed. The marketplace product was deprecated
- *     in v0.7; the only key shape we ship now is enterprise (qlv_ent_*).
- *     Direct-accept of pre-v0.7 marketplace `qlv_*` keys still resolves
- *     via the OAuth flow's KV-stored entries, but every backend call
- *     goes to /v1/enterprise/*.
- *   - Added listDomains() + getSourceDetail() for the new MCP tools.
- *   - Removed topics() — backend /v1/topics never existed; replaced by
- *     the new GET /v1/enterprise/domains.
- *   - Added queryStream() for SSE-mode synthesis.
+ * Endpoints called:
+ *   POST /v1/enterprise/query         — one-shot search
+ *   POST /v1/enterprise/query/stream  — SSE synthesis stream
+ *   GET  /v1/enterprise/domains       — taxonomy discovery
+ *   GET  /v1/enterprise/sources/:id   — per-chunk provenance
  */
 
 const SOURCE_HEADER_VALUE = "mcp";

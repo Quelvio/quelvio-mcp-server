@@ -29,12 +29,13 @@ export const REFRESH_TOKEN_TTL_SECONDS = 30 * 86400; // 30 days
 
 /** Payload stored under code:{uuid} during /oauth/authorize → /oauth/token.
  *
- * v0.8.8 foundation: ``member_id`` and ``email`` are populated for every
- * normal auth (Clerk-redirect flow at ``/oauth/callback``). The pre-
- * foundation paste-an-API-key flow that wrote NULLs is gone alongside
- * the W14 direct-accept code path. The fields are still nullable on
- * the type so the admin-fallback smoke path can mint codes without an
- * employee binding (admin smoke is operator-only, never customer).
+ * ``member_id`` and ``email`` are populated for every normal auth
+ * (Clerk-redirect flow at ``/oauth/callback``). The pre-foundation
+ * paste-an-API-key flow that wrote NULLs has been removed alongside
+ * the legacy paste-key direct-accept code path. The fields are still
+ * nullable on the type so the admin-fallback smoke path can mint
+ * codes without an employee binding (admin smoke is operator-only,
+ * never customer).
  */
 export interface StoredAuthCode {
   encrypted_api_key: string;
