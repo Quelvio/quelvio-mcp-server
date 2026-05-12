@@ -1,0 +1,32 @@
+{
+  "name": "@quelvio/mcp-server",
+  "version": "1.0.2",
+  "description": "Quelvio MCP server — expert knowledge search for AI agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250327.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Quelvio/quelvio-mcp-server.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "quelvio",
+    "knowledge",
+    "search",
+    "ai"
+  ]
+}

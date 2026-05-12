@@ -1,0 +1,51 @@
+name = "quelvio-mcp"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[vars]
+QUELVIO_API_URL = "https://api.quelvio.com"
+# OAuth issuer — must equal the public URL of this Worker. Used in
+# /.well-known/oauth-protected-resource and /.well-known/oauth-authorization-server.
+OAUTH_ISSUER = "https://mcp.quelvio.com"
+# Admin fallback: when "true", the auth middleware accepts
+# Bearer {QUELVIO_API_KEY} as a valid token. Off in prod, on for smoke tests.
+ADMIN_KEY_FALLBACK_ENABLED = "false"
+# Comma-separated list of additional redirect_uri values to allow beyond
+# the two hardcoded Claude callbacks. Each entry is exact-match (per OAuth 2.1)
+# except localhost:* which matches any port.
+OAUTH_EXTRA_REDIRECT_URIS = "http://localhost:*,https://cursor.sh/api/mcp/auth_callback"
+# v0.8.8 MCP Phase 2 — frontend bridge page that completes the
+# Clerk-redirect chain. /oauth/authorize 302s to this URL with a
+# pending_id query param; the bridge page renders a consent UI and
+# forwards the Clerk JWT back to /oauth/callback. The value is the
+# same for every Worker deployment — public infrastructure, not a
+# secret. See docs/v088-mcp-phase2-design.md §2.1.
+CLERK_SIGN_IN_URL = "https://enterprise.quelvio.com/oauth/bridge"
+
+# ── KV namespace for OAuth artifacts (codes, access tokens, refresh tokens) ──
+# Single namespace, prefixed keys: code:{uuid}, token:{uuid}, refresh:{uuid}.
+# Create with: npx wrangler kv namespace create OAUTH_KV
+# Then paste the returned id below — REPLACE the placeholder.
+[[kv_namespaces]]
+binding = "OAUTH_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# ── Secrets (set via wrangler, NOT committed) ───────────────────────────────
+# wrangler secret put QUELVIO_API_KEY            (admin fallback only)
+# wrangler secret put TOKEN_ENCRYPTION_KEY        (32 bytes hex — openssl rand -hex 32)
+#
+# v0.8.8 foundation deleted CSRF_SIGNING_KEY (no more CSRF cookie — the
+# paste-key form is gone) and ENABLE_CLERK_REDIRECT (Clerk redirect is
+# unconditional). Operator action on the live Worker:
+#   wrangler secret delete CSRF_SIGNING_KEY
+#   wrangler secret delete ENABLE_CLERK_REDIRECT  # if set as a secret
+#   wrangler secret delete CLERK_SIGN_IN_URL      # if set as a secret;
+#                                                  # v0.8.8 MCP Phase 2
+#                                                  # promotes it to [vars]
+# See docs/v088-foundation-design.md §2.3 and
+#     docs/v088-mcp-phase2-design.md §2.1.
+
+# Custom domain (add later when DNS is configured):
+# [[routes]]
+# pattern = "mcp.quelvio.com/http"
+# zone_name = "quelvio.com"

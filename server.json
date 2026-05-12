@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.quelvio/mcp-server",
+  "description": "Your company's brain for AI agents. Cited, permission-aware knowledge across every system.",
+  "version": "1.0.2",
+  "websiteUrl": "https://quelvio.com",
+  "repository": {
+    "url": "https://github.com/Quelvio/quelvio-mcp-server",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.quelvio.com/http"
+    }
+  ]
+}
