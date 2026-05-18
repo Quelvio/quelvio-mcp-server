@@ -97,7 +97,7 @@ export function getApiUrl(env: Env): string {
 /** MCP server metadata returned during initialize handshake. */
 export const SERVER_INFO = {
   name: "quelvio-mcp",
-  version: "1.0.3",
+  version: "1.1.0",
 } as const;
 
 /** MCP protocol version (streamable HTTP, spec 2025-03-26). */
