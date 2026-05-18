@@ -1,10 +1,12 @@
 /**
- * SSE proxy for synthesis-mode `query_knowledge` calls.
+ * SSE proxy for synthesizing-mode `query_knowledge` calls.
  *
  * When a client requests `Accept: text/event-stream` and the mode is
- * synthesis_lite or synthesis_pro, the MCP server opens a streaming
- * fetch to the backend's `POST /v1/enterprise/query/stream` and re-
- * encodes its bespoke event vocabulary as MCP-shaped output deltas.
+ * `standard` or `deep` (v0.9 — synthesis built in), the MCP server
+ * opens a streaming fetch to the backend's
+ * `POST /v1/enterprise/query/stream` and re-encodes its bespoke event
+ * vocabulary as MCP-shaped output deltas. `fast` never streams since
+ * it's retrieval-only with no synthesis body to incrementally produce.
  *
  * Backend SSE event mapping:
  *
@@ -188,7 +190,7 @@ export async function streamSynthesisQuery(
   client: QuelvioClient,
   params: {
     query: string;
-    mode: "synthesis_lite" | "synthesis_pro";
+    mode: "standard" | "deep";
     max_sources: number;
     domain: string | undefined;
   },

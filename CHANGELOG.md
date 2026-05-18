@@ -2,6 +2,41 @@
 
 All notable changes to the Quelvio MCP server. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] — 2026-05-18
+
+### Changed (BREAKING — tool surface)
+
+- **`query_knowledge` modes consolidated to v0.9's three tiers:** `fast`,
+  `standard`, `deep`. The pre-v0.9 5-value enum (`quick`, `standard`,
+  `deep`, `synthesis_lite`, `synthesis_pro`) is retired. `standard` is
+  the default. **Synthesis is now built into `standard` and `deep`** —
+  there's no separate "synthesis" mode axis. `fast` is the only tier
+  that returns chunks without a synthesized answer body.
+- **Streaming gate updated:** SSE proxy now engages for `standard` and
+  `deep` (previously `synthesis_lite` / `synthesis_pro`). `fast` never
+  streams.
+- **Default streaming mode in api-client:** changed from `synthesis_lite`
+  → `standard` to align with the v0.9 default.
+
+### Fixed
+
+- **Synthesis text was being silently dropped on the default `standard`
+  mode.** The old `isSynthesis = mode === "synthesis_lite" || mode === "synthesis_pro"`
+  check rejected `standard`, so when v0.9 backends returned an actual
+  synthesized answer the MCP discarded it before responding. The new
+  logic uses the response payload as source of truth: if the backend
+  returned a non-empty `synthesis` string, render it.
+- **README pricing was off by orders of magnitude** (1 kT structured /
+  2 kT synthesis). Replaced with v0.9 Contract Lock constants:
+  1,500 / 12,500 / 25,000 kT for fast / standard / deep.
+
+### Compatibility note
+
+Pre-v0.9 alias values (`quick`, `synthesis_lite`, `synthesis_pro`, `basic`)
+are still accepted by the backend's deprecation shim but no longer
+exposed via the MCP tool schema. Clients sending an alias get the
+mapped v0.9 mode + a per-process deprecation warning in backend logs.
+
 ## [1.0.3] — 2026-05-12
 
 ### Changed

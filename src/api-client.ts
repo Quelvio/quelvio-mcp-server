@@ -188,7 +188,11 @@ export class QuelvioClient {
     const body: Record<string, unknown> = {
       query: params.query,
       limit: params.top_k ?? 5,
-      mode: params.mode ?? "synthesis_lite",
+      // v0.9 default — ``standard`` includes synthesis. The legacy
+      // ``synthesis_lite`` default was a pre-v0.9 holdover that the
+      // backend still accepts via its deprecation shim, but emits a
+      // warning on every call.
+      mode: params.mode ?? "standard",
     };
     if (params.domain_filter) {
       body.domain_filter = params.domain_filter;

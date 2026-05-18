@@ -10,7 +10,7 @@ License: MIT
 
 | Tool | Purpose | Knowledge Tokens |
 |---|---|---|
-| `query_knowledge` | Primary search across the tenant's connected sources (Drive, SharePoint, Confluence, Slack, Notion). Modes: `quick`, `standard`, `deep`, `synthesis_lite`, `synthesis_pro`. | 1 kT (structured) / 2 kT (synthesis) |
+| `query_knowledge` | Primary search across the tenant's connected sources (Drive, SharePoint, Confluence, Slack, Notion). Modes: `fast`, `standard` (default), `deep`. | 1,500 kT (`fast`) / 12,500 kT (`standard`) / 25,000 kT (`deep`) |
 | `list_domains` | Discovery — list taxonomy domains with coverage levels. Use to decide whether the brain has relevant knowledge before issuing a billable query. | 0 kT |
 | `get_source_detail` | Per-chunk provenance for a previous query: document path, lifecycle state, embedding timestamp, contributor, last-updated. Pass a `query_id` from an earlier `query_knowledge` response. | 0 kT |
 
@@ -130,10 +130,12 @@ Modern MCP clients auto-bootstrap the flow when they hit a 401 with the `WWW-Aut
 ```
 ask Claude: "What's our deployment process for the payments service?"
 
-Claude calls: query_knowledge(query="deployment process payments service", mode="synthesis_lite")
+Claude calls: query_knowledge(query="deployment process payments service")
 
 Response: synthesized answer with [n] citations + structured metadata block including
-query_id, coverage level, retrieval mode, latency, and tokens consumed.
+query_id, coverage level, retrieval execution state, latency, and tokens consumed.
+(Default mode is `standard` — synthesis is built in. Use `mode="deep"` for complex
+analytical questions, `mode="fast"` for keyword-style retrieval with no synthesis.)
 ```
 
 ### 2. `list_domains` — discover what's indexed before querying
@@ -163,14 +165,15 @@ authority score, taxonomy domain.
 
 ## Pricing
 
-Knowledge Token consumption per tool call:
+Knowledge Token consumption per tool call (v0.9 frozen constants):
 
-- `query_knowledge` with `mode=quick|standard|deep`: 1 kT
-- `query_knowledge` with `mode=synthesis_lite|synthesis_pro`: 2 kT
-- `list_domains`: 0 kT
-- `get_source_detail`: 0 kT
+- `query_knowledge` with `mode=fast`     : **1,500 kT**  (retrieval-only, no synthesis)
+- `query_knowledge` with `mode=standard` : **12,500 kT** (default; synthesis bundled)
+- `query_knowledge` with `mode=deep`     : **25,000 kT** (wider retrieval + premium synthesis)
+- `list_domains`                          : 0 kT
+- `get_source_detail`                     : 0 kT
 
-These are v0.5 rates. v0.8 Phase A migrates to a rate-card lookup with three dimensions (Ingestion / Index / Retrieval) and per-region multipliers. Check your dashboard's billing page for the authoritative current rates.
+These costs are frozen at the v0.9 Contract Lock. The dashboard's billing page (`/billing`) shows the live per-tenant daily Knowledge Token pool and the projected next invoice.
 
 ## Self-hosting / development
 
@@ -195,7 +198,7 @@ The Worker is stateless — every OAuth artifact (auth codes, access tokens, ref
 - **Endpoint:** `POST /http` with `Content-Type: application/json`
 - **Health check:** `GET /` or `GET /http` returns server info
 - **Methods:** `initialize`, `tools/list`, `tools/call`, `ping`
-- **Streaming:** when `tools/call query_knowledge` carries `Accept: text/event-stream` AND `mode` is `synthesis_lite|synthesis_pro`, the server proxies the backend's SSE pipeline. The MCP response is still a single JSON body — token-by-token streaming to the MCP client lands when the spec adds native output deltas.
+- **Streaming:** when `tools/call query_knowledge` carries `Accept: text/event-stream` AND `mode` is `standard|deep` (the two v0.9 tiers that synthesize), the server proxies the backend's SSE pipeline. `fast` never streams (no synthesis body to incrementally produce). The MCP response is still a single JSON body — token-by-token streaming to the MCP client lands when the spec adds native output deltas.
 - **Response cap:** Claude Connectors' 25,000-token-per-tool-result limit is enforced server-side. Truncation order: drop excerpts past 200 chars first, then drop lowest-rank sources (preserving ≥3), then truncate the synthesis body. Truncation is signalled via `truncated: true` in the structured metadata block so agents can re-issue with a smaller `max_sources`.
 
 ## Changelog
