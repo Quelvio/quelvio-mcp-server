@@ -16,12 +16,11 @@ License: MIT
 
 ## Permission model
 
-Every MCP query is scoped to your **individual employee identity**, not just your tenant. The server applies the same four-layer access model the dashboard uses:
+Every MCP query is scoped to your **individual employee identity**, not just your tenant. The server applies the same three-layer access model the dashboard uses:
 
 1. **Tenant isolation** — Qdrant collections are per-tenant; cross-tenant content is structurally unreachable.
 2. **Role-based feature access** — Owner / Admin / Member determines which tools are callable.
-3. **Knowledge Spaces** (v0.9, planned) — content access-control units within a tenant.
-4. **Source permission filtering** — `permission_emails` on every chunk, resolved at ingest time from the source system's ACLs (Google Drive shares, SharePoint groups, Confluence space restrictions). MCP queries see only what your individual account would see in those source systems.
+3. **Source permission filtering** — `permission_emails` on every chunk, resolved at ingest time from the source system's ACLs (Google Drive shares, SharePoint groups, Confluence space restrictions). MCP queries see only what your individual account would see in those source systems.
 
 The source-permission filter is unconditional — there is no flag, env var, or dashboard toggle that disables it. The MCP server records the per-employee identity on every query so cross-employee provenance inspection via `get_source_detail` is rejected with 404 (only Owner/Admin can view another member's queries).
 
