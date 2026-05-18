@@ -132,8 +132,13 @@ const TOOL_REGISTRY: ToolEntry[] = [
 ];
 
 // ── Synthesis mode detection ──────────────────────────────────────────────
+//
+// v0.9: synthesis is bundled into ``standard`` and ``deep``. ``fast`` is
+// the only tier that returns chunks without an LLM-synthesized body. The
+// streaming SSE proxy is therefore engaged for ``standard`` and ``deep``
+// (when the caller requests text/event-stream), never for ``fast``.
 
-const SYNTHESIS_MODES = new Set(["synthesis_lite", "synthesis_pro"]);
+const SYNTHESIZING_MODES = new Set(["standard", "deep"]);
 
 function isStreamingSynthesisCall(
   request: Request,
@@ -141,8 +146,11 @@ function isStreamingSynthesisCall(
   toolArgs: Record<string, unknown>,
 ): boolean {
   if (toolName !== "query_knowledge") return false;
-  const mode = toolArgs.mode;
-  if (typeof mode !== "string" || !SYNTHESIS_MODES.has(mode)) return false;
+  // Default mode is ``standard`` (which synthesizes); only the
+  // explicit ``fast`` opt-out falls outside the streaming-eligible set.
+  const rawMode = toolArgs.mode;
+  const mode = typeof rawMode === "string" ? rawMode : "standard";
+  if (!SYNTHESIZING_MODES.has(mode)) return false;
   const accept = request.headers.get("Accept") ?? "";
   return accept.includes("text/event-stream");
 }
@@ -248,7 +256,7 @@ async function handleMcpRequest(
             isError: true,
           });
         }
-        const mode = toolArgs.mode as "synthesis_lite" | "synthesis_pro";
+        const mode = toolArgs.mode as "standard" | "deep";
         const maxSources =
           typeof toolArgs.max_sources === "number"
             ? Math.min(Math.max(Math.floor(toolArgs.max_sources), 1), 20)

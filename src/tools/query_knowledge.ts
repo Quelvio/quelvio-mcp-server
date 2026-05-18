@@ -6,9 +6,16 @@
  * Replaces the v0.x-era quelvio_search tool and absorbs quelvio_synthesize
  * via the `mode` parameter.
  *
- * Token consumption (v0.5 rates; v0.8 Phase A migrates to rate-card lookup):
- *   structured modes (quick / standard / deep): 1 kT
- *   synthesis_lite / synthesis_pro            : 2 kT
+ * v0.9 query model: three tiers (fast | standard | deep). Synthesis
+ * is built into ``standard`` and ``deep`` by default — there's no
+ * longer a separate "synthesis_lite/pro" axis. ``fast`` is the only
+ * tier that returns chunks without an LLM-synthesized answer.
+ *
+ * Per-query Knowledge Tokens (v0.9 frozen constants, see backend's
+ * daily_pool_constants.QUERY_KT_COST):
+ *   fast      : 1,500 kT
+ *   standard  : 12,500 kT  ← default
+ *   deep      : 25,000 kT
  */
 
 import type { ChunkResult, QuelvioClient } from "../api-client.js";
@@ -18,28 +25,21 @@ import {
 } from "./token_cap.js";
 import type { ToolDefinition, ToolHandler } from "./types.js";
 
-const VALID_MODES = [
-  "quick",
-  "standard",
-  "deep",
-  "synthesis_lite",
-  "synthesis_pro",
-] as const;
+const VALID_MODES = ["fast", "standard", "deep"] as const;
 
 export const queryKnowledgeDefinition: ToolDefinition = {
   name: "query_knowledge",
   description:
     "Search the company's connected knowledge across every source — Drive, " +
-    "SharePoint, Confluence, Slack, Notion — with cited answers, lifecycle " +
-    "awareness, and refusal-on-weak-context. Returns ranked chunks with " +
-    "source attribution, authority scores, and coverage level. Use " +
-    "`mode=synthesis_lite` (Qwen3.5 Flash) or `mode=synthesis_pro` " +
-    "(Qwen3 Max) for a written answer with [n] citations; use the default " +
-    "`standard` for a structured chunk list. `quick` is faster + cheaper, " +
-    "`deep` is slower + thorough. Synthesis modes consume more Knowledge " +
-    "Tokens than structured modes — pick the cheapest mode that answers " +
-    "the question. Responses are capped at 25,000 tokens per Claude " +
-    "Connectors policy; if the response is truncated, structured metadata " +
+    "SharePoint, Confluence, Slack, Notion — with cited synthesized " +
+    "answers, lifecycle awareness, and refusal-on-weak-context. Returns " +
+    "a written answer with [n] citations plus the ranked source chunks. " +
+    "Modes: `fast` (1,500 kT — retrieval-only, no synthesis), " +
+    "`standard` (12,500 kT — default; synthesized answer over the top " +
+    "retrieval set), `deep` (25,000 kT — wider retrieval + premium " +
+    "synthesis for complex questions). Pick the cheapest tier that " +
+    "answers the question. Responses are capped at 25,000 output tokens " +
+    "per Claude Connectors policy; if truncated, structured metadata " +
     "carries `truncated: true` and `query_id` so the agent can call " +
     "`get_source_detail` for full provenance.",
   inputSchema: {
@@ -54,9 +54,10 @@ export const queryKnowledgeDefinition: ToolDefinition = {
       mode: {
         type: "string",
         description:
-          "quick | standard | deep | synthesis_lite | synthesis_pro. " +
-          "Defaults to `standard`. Synthesis modes return a written " +
-          "answer with citations; structured modes return chunks only.",
+          "fast | standard | deep. Defaults to `standard`. `fast` " +
+          "returns chunks only (no synthesized answer); `standard` and " +
+          "`deep` return a synthesized answer with [n] citations + " +
+          "the source chunks.",
         enum: [...VALID_MODES],
       },
       max_sources: {
@@ -146,7 +147,6 @@ export function createQueryKnowledgeHandler(
       typeof args.domain === "string" && args.domain.trim()
         ? args.domain.trim()
         : undefined;
-    const isSynthesis = mode === "synthesis_lite" || mode === "synthesis_pro";
 
     try {
       const response = await client.query({
@@ -158,6 +158,10 @@ export function createQueryKnowledgeHandler(
 
       const sources = response.results.map(chunkToSource);
       const synthesis = response.synthesis ?? "";
+      // v0.9: synthesis comes back on standard + deep (built in).
+      // Treat the backend's response as the source of truth — if it
+      // returned a non-empty synthesis string, render it.
+      const hasSynthesis = synthesis !== "";
 
       // Footer carries the metadata an agent or human reader needs to
       // understand the response. The structured JSON block at the end
@@ -177,7 +181,7 @@ export function createQueryKnowledgeHandler(
       const footer = footerLines.join(" | ");
 
       const truncation = applyTokenCap({
-        synthesis: isSynthesis ? synthesis : "",
+        synthesis: hasSynthesis ? synthesis : "",
         sources,
         footer,
       });

@@ -1,6 +1,6 @@
 {
   "name": "@quelvio/mcp-server",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Quelvio MCP server — expert knowledge search for AI agents",
   "type": "module",
   "main": "dist/index.js",
