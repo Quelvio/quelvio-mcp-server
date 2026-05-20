@@ -200,6 +200,30 @@ The Worker is stateless — every OAuth artifact (auth codes, access tokens, ref
 - **Streaming:** when `tools/call query_knowledge` carries `Accept: text/event-stream` AND `mode` is `standard|deep` (the two v0.9 tiers that synthesize), the server proxies the backend's SSE pipeline. `fast` never streams (no synthesis body to incrementally produce). The MCP response is still a single JSON body — token-by-token streaming to the MCP client lands when the spec adds native output deltas.
 - **Response cap:** Claude Connectors' 25,000-token-per-tool-result limit is enforced server-side. Truncation order: drop excerpts past 200 chars first, then drop lowest-rank sources (preserving ≥3), then truncate the synthesis body. Truncation is signalled via `truncated: true` in the structured metadata block so agents can re-issue with a smaller `max_sources`.
 
+## Release process
+
+Publishes go through `.github/workflows/publish.yml` via **npm Trusted Publishing** (OIDC). No long-lived `NPM_TOKEN` lives in this repo or in GitHub Actions secrets.
+
+To ship a new version:
+
+```bash
+# 1. Bump version + commit
+npm version patch   # or minor / major
+git push origin main
+
+# 2. Push the matching tag — this triggers the publish workflow
+git push origin v$(node -p "require('./package.json').version")
+```
+
+The workflow verifies the tag matches `package.json`, type-checks, builds, and runs `npm publish --provenance --access public`. SLSA provenance is attached to every release.
+
+One-time bootstrap on npmjs.com (operator step):
+
+- Package: `@quelvio/mcp-server` → Settings → Trusted Publishers → Add
+- Repository owner: `Quelvio`
+- Repository name: `quelvio-mcp-server`
+- Workflow filename: `publish.yml`
+
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
