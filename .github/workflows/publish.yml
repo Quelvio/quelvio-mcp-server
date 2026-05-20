@@ -1,0 +1,69 @@
+name: publish
+
+# Trusted Publishing — OIDC-based npm publish, no long-lived NPM_TOKEN.
+#
+# Triggered by pushing a SemVer tag (e.g. `v1.1.0`). The workflow:
+#   1. Verifies the tag matches package.json's `version` field so a stale
+#      bump can't ship under the wrong tag.
+#   2. Type-checks + builds (tsc → dist/).
+#   3. Runs `npm publish --provenance --access public`. The provenance
+#      flag attaches SLSA build attestation; npm's OIDC trusted-publisher
+#      config (set on npmjs.com, see README) verifies the workflow
+#      identity and issues a short-lived publish token automatically —
+#      no secret stored in GitHub.
+#
+# To trigger a release:
+#   git tag v1.2.3 && git push origin v1.2.3
+#
+# To bootstrap on npmjs.com (one-time, operator step):
+#   npmjs.com → @quelvio/mcp-server → Settings → "Trusted Publishers"
+#     Repository owner:   Quelvio
+#     Repository name:    quelvio-mcp-server
+#     Workflow filename:  publish.yml
+#     Environment name:   (leave blank)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  # Allow manual republish from the Actions tab in case CI was offline
+  # at tag-push time. Same OIDC path; no token needed.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Required for OIDC trusted publishing — npm verifies this workflow's
+  # identity via the GitHub-issued OIDC JWT.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify tag matches package.json version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          pkg=$(node -p "require('./package.json').version")
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag $GITHUB_REF_NAME (=$tag) does not match package.json version $pkg"
+            exit 1
+          fi
+          echo "Publishing @quelvio/mcp-server@$pkg"
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run build
+
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
