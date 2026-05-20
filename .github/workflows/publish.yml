@@ -48,6 +48,16 @@ jobs:
           node-version: "20"
           registry-url: https://registry.npmjs.org
 
+      # npm 11.5.1+ is required for automatic OIDC → publish-token
+      # exchange. Node 20 LTS ships with npm 10.x, which signs the
+      # provenance attestation fine but can't trade the OIDC token
+      # for the publish-write scope — the publish PUT then 404s.
+      # First-attempt of this workflow failed for this exact reason
+      # (run 26148027995); pin npm latest here so the upgrade is
+      # explicit and reproducible.
+      - name: Upgrade npm to a version that supports OIDC publish
+        run: npm install -g npm@latest
+
       - name: Verify tag matches package.json version
         run: |
           set -euo pipefail
