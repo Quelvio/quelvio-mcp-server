@@ -26,7 +26,7 @@ CLERK_SIGN_IN_URL = "https://enterprise.quelvio.com/oauth/bridge"
 # Then paste the returned id below — REPLACE the placeholder.
 [[kv_namespaces]]
 binding = "OAUTH_KV"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "5eae4c45ebcf42d68d0da8fc5114e421"
 
 # ── Secrets (set via wrangler, NOT committed) ───────────────────────────────
 # wrangler secret put QUELVIO_API_KEY            (admin fallback only)
