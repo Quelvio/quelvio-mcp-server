@@ -13,7 +13,7 @@ ADMIN_KEY_FALLBACK_ENABLED = "false"
 # Comma-separated list of additional redirect_uri values to allow beyond
 # the two hardcoded Claude callbacks. Each entry is exact-match (per OAuth 2.1)
 # except localhost:* which matches any port.
-OAUTH_EXTRA_REDIRECT_URIS = "http://localhost:*,https://cursor.sh/api/mcp/auth_callback"
+OAUTH_EXTRA_REDIRECT_URIS = "http://localhost:*,http://127.0.0.1:*,http://[::1]:*,https://cursor.sh/api/mcp/auth_callback"
 # Frontend bridge page that completes the Clerk-redirect chain.
 # /oauth/authorize 302s to this URL with a pending_id query param;
 # the bridge page renders a consent UI and forwards the Clerk JWT

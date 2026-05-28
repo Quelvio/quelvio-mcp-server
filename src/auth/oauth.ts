@@ -428,7 +428,17 @@ export async function handleAuthorizeGet(
   if (!clientId) {
     return oauthError("invalid_request", "Missing client_id.");
   }
-  if (!redirectUri || !isRedirectUriAllowed(redirectUri, env)) {
+  if (!redirectUri) {
+    return oauthError(
+      "invalid_request",
+      "Missing redirect_uri.",
+    );
+  }
+
+  const registeredClient = await lookupRegisteredClient(env, clientId);
+  const isRegisteredRedirect =
+    registeredClient?.redirect_uris.includes(redirectUri) ?? false;
+  if (!isRegisteredRedirect && !isRedirectUriAllowed(redirectUri, env)) {
     return oauthError(
       "invalid_request",
       "redirect_uri is not in the allowlist.",
