@@ -1,0 +1,33 @@
+name: ci
+
+# Lightweight gate run on PRs and pushes to main. Keeps the existing
+# tag-driven `publish.yml` untouched (still the only path that ships to
+# npm via OIDC trusted publishing). This workflow exists so test files
+# under `src/**/*.test.ts` actually block a PR if they fail.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test

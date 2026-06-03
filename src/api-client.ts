@@ -24,6 +24,8 @@
  *   GET  /v1/enterprise/sources/:id   — per-chunk provenance
  */
 
+import { noteSentinelHeader } from "./sentinel.js";
+
 const SOURCE_HEADER_VALUE = "mcp";
 
 // ── Request / Response types ──────────────────────────────────────────────
@@ -165,6 +167,7 @@ export class QuelvioClient {
       headers: this.headers(),
       body: JSON.stringify(body),
     });
+    noteSentinelHeader(res);
 
     if (!res.ok) {
       const text = await res.text();
@@ -203,6 +206,7 @@ export class QuelvioClient {
       headers: this.headers({ Accept: "text/event-stream" }),
       body: JSON.stringify(body),
     });
+    noteSentinelHeader(res);
 
     if (!res.ok) {
       const text = await res.text();
@@ -220,6 +224,7 @@ export class QuelvioClient {
     const res = await fetch(url.toString(), {
       headers: this.headers(),
     });
+    noteSentinelHeader(res);
 
     if (!res.ok) {
       const text = await res.text();
@@ -236,6 +241,7 @@ export class QuelvioClient {
         headers: this.headers(),
       },
     );
+    noteSentinelHeader(res);
 
     if (!res.ok) {
       const text = await res.text();
