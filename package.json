@@ -30,5 +30,9 @@
     "knowledge",
     "search",
     "ai"
-  ]
+  ],
+  "publishConfig": {
+    "provenance": true,
+    "access": "public"
+  }
 }
